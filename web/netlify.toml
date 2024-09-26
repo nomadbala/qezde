@@ -1,6 +1,5 @@
 [build]
-  base = "web"
+  base = "/opt/build/repo/web"
+  publish = "/opt/build/repo/web/out"
   command = "npm run build"
-  publish = "out"
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+
