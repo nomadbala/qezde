@@ -2,24 +2,64 @@ package handler
 
 import (
 	"gateway/internal/config"
-	"github.com/gin-contrib/cors"
+	"gateway/internal/handler/http"
+	"gateway/pkg/server/response"
+	"gateway/pkg/server/router"
+	"github.com/gin-contrib/timeout"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
-func New(config config.Config) *gin.Engine {
-	router := gin.Default()
+type Dependencies struct {
+	Configs config.Config
+}
 
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     config.CORS.AllowedOrigins,
-		AllowMethods:     config.CORS.AllowedMethods,
-		AllowHeaders:     config.CORS.AllowedHeaders,
-		ExposeHeaders:    config.CORS.ExposedHeaders,
-		AllowCredentials: config.CORS.AllowCredentials,
-	}))
+type Handler struct {
+	dependencies Dependencies
+	HTTP         *gin.Engine
+}
 
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{})
-	})
+type Configuration func(h *Handler) error
 
-	return router
+func New(d Dependencies, configs ...Configuration) (h *Handler, err error) {
+	h = &Handler{
+		dependencies: d,
+	}
+
+	for _, cfg := range configs {
+		if err = cfg(h); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func WithHTTPHandler() Configuration {
+	return func(h *Handler) (err error) {
+		h.HTTP = router.New()
+
+		h.HTTP.Use(timeout.New(
+			timeout.WithTimeout(60*time.Second),
+			timeout.WithHandler(func(ctx *gin.Context) {
+				ctx.Next()
+			}),
+			timeout.WithResponse(func(ctx *gin.Context) {
+				response.StatusRequestTimeout(ctx)
+			}),
+		))
+
+		h.HTTP.GET("/health", func(c *gin.Context) {
+			c.JSON(200, gin.H{})
+		})
+
+		proxy := http.NewProxyHandler(h.dependencies.Configs)
+
+		api := h.HTTP.Group("/auth")
+		{
+			proxy.Routes(api, h.dependencies.Configs)
+		}
+
+		return
+	}
 }

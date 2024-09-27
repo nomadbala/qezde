@@ -15,9 +15,19 @@ func Run() {
 
 	ctx := context.Background()
 
-	handlers := handler.New(configs)
+	dependencies := handler.Dependencies{
+		Configs: configs,
+	}
 
-	servers := server.New(configs, handlers, ctx)
+	handlers, err := handler.New(dependencies, handler.WithHTTPHandler())
+	if err != nil {
+		panic(err)
+	}
+
+	servers, err := server.New(server.WithHTTPServer(configs, handlers.HTTP, ctx))
+	if err != nil {
+		panic(err)
+	}
 
 	if err := servers.Run(); err != nil {
 		panic(err)

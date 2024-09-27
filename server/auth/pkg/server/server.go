@@ -1,9 +1,9 @@
 package server
 
 import (
+	"auth/internal/config"
 	"context"
 	"errors"
-	"gateway/internal/config"
 	"log"
 	"net/http"
 	"os"
