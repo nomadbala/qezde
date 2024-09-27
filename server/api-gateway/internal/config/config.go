@@ -10,9 +10,10 @@ import (
 
 type (
 	Config struct {
-		Server ServerConfig
-		CORS   CORSConfig
-		API    APIConfig
+		Server     ServerConfig
+		CORS       CORSConfig
+		API        APIConfig
+		Middleware MiddlewareConfig
 	}
 
 	ServerConfig struct {
@@ -32,6 +33,10 @@ type (
 
 	APIConfig struct {
 		Auth string
+	}
+
+	MiddlewareConfig struct {
+		SigningKey string
 	}
 )
 
@@ -75,6 +80,15 @@ func New() (config Config, err error) {
 		AllowedHeaders:   AllowHeaders,
 		ExposedHeaders:   ExposeHeaders,
 		AllowCredentials: true,
+	}
+
+	signingKey := os.Getenv("SIGNING_KEY")
+	if signingKey == "" {
+		return
+	}
+
+	config.Middleware = MiddlewareConfig{
+		SigningKey: signingKey,
 	}
 
 	if err = envconfig.Process("API", &config.API); err != nil {

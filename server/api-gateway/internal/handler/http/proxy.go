@@ -2,20 +2,29 @@ package http
 
 import (
 	"bytes"
+	"errors"
 	"gateway/internal/config"
+	"gateway/pkg/server/response"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
 )
 
-type ProxyHandler struct{}
+type ProxyHandler struct {
+	config config.Config
+}
 
-func NewProxyHandler() *ProxyHandler {
-	return &ProxyHandler{}
+func NewProxyHandler(config config.Config) *ProxyHandler {
+	return &ProxyHandler{config: config}
 }
 
 func (h *ProxyHandler) Routes(routerGroup *gin.RouterGroup, config config.Config) {
-	routerGroup.Any("/auth/*action", h.handleRequest(config.API.Auth))
+	routerGroup.Any("/register", h.handleRequest(config.API.Auth))
+	routerGroup.Any("/login", h.handleRequest(config.API.Auth))
+
+	middlewaredRoutesGroup := routerGroup.Group("")
+	middlewaredRoutesGroup.Use(h.Middleware())
+	//middlewaredRoutesGroup.Any("/*action", h.handleRequest(config.API.Auth))
 }
 
 func (h *ProxyHandler) handleRequest(targetURL string) gin.HandlerFunc {
@@ -31,13 +40,13 @@ func (h *ProxyHandler) handleRequest(targetURL string) gin.HandlerFunc {
 
 		body, err := io.ReadAll(c.Request.Body)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to read request body"})
+			response.InternalServerError(c, errors.New("unable to read request body"))
 			return
 		}
 
 		req, err := http.NewRequest(method, target, bytes.NewBuffer(body))
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to create request"})
+			response.InternalServerError(c, errors.New("unable to create request"))
 			return
 		}
 
@@ -51,7 +60,7 @@ func (h *ProxyHandler) handleRequest(targetURL string) gin.HandlerFunc {
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "request to backend service failed"})
+			response.InternalServerError(c, errors.New("request to backend service failed"))
 			return
 		}
 		defer resp.Body.Close()

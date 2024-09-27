@@ -12,27 +12,40 @@ import (
 	"time"
 )
 
-type HttpServer struct {
-	server *http.Server
-	ctx    context.Context
+type Server struct {
+	http *http.Server
+	ctx  context.Context
 }
 
-func New(config config.Config, handler http.Handler, ctx context.Context) *HttpServer {
-	return &HttpServer{
-		server: &http.Server{
+type Configuration func(s *Server) error
+
+func New(configs ...Configuration) (r *Server, err error) {
+	r = &Server{}
+	for _, cfg := range configs {
+		if err = cfg(r); err != nil {
+			return
+		}
+	}
+	return
+}
+
+func WithHTTPServer(config config.Config, handler http.Handler, ctx context.Context) Configuration {
+	return func(s *Server) (err error) {
+		s.http = &http.Server{
 			Addr:           ":" + config.Server.Port,
 			Handler:        handler,
 			MaxHeaderBytes: config.Server.MaxHeaderBytes,
 			ReadTimeout:    config.Server.ReadTimeout,
 			WriteTimeout:   config.Server.WriteTimeout,
-		},
-		ctx: ctx,
+		}
+		s.ctx = ctx
+		return nil
 	}
 }
 
-func (s *HttpServer) Run() (err error) {
+func (s *Server) Run() (err error) {
 	go func() {
-		if err = s.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err = s.http.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
@@ -44,7 +57,7 @@ func (s *HttpServer) Run() (err error) {
 	ctx, cancel := context.WithTimeout(s.ctx, 10*time.Second)
 	defer cancel()
 
-	if err = s.server.Shutdown(ctx); err != nil {
+	if err = s.http.Shutdown(ctx); err != nil {
 		log.Fatalf("Server forced to shutdown: %+v", err)
 		return
 	}
