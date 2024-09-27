@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export default function Header() {
+  const t = useTranslations("header");
+
   return (
     <header className="w-full h-20 flex items-center px-32 gap-32">
       <Link href="/">
@@ -9,10 +12,10 @@ export default function Header() {
       </Link>
       <menu className="flex gap-8">
         <li>
-          <Link href="/">About us</Link>
+          <Link href="/">{t("item1.title")}</Link>
         </li>
         <li>
-          <Link href="#faq">FAQ</Link>
+          <Link href="#faq">{t("item2.title")}</Link>
         </li>
       </menu>
     </header>

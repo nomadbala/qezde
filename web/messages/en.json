@@ -1,0 +1,20 @@
+{
+  "faq": {
+    "item1": {
+      "question": "What is Qezde?",
+      "answer": "Qezde is an online platform that helps people discover the best places in Astana. It’s a guide to cafes, restaurants, coworking spaces, and other cool spots in the city, based on user reviews."
+    },
+    "item2": {
+      "question": "How do I contact Qezde support?",
+      "answer": "If you have any questions or issues, contact our support team via email at support@qezde.kz or use the contact form on the website."
+    }
+  },
+  "header": {
+    "item1": {
+      "title": "About us"
+    },
+    "item2": {
+      "title": "FAQ"
+    }
+  }
+}
