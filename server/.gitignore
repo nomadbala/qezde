@@ -14,4 +14,4 @@
 *.data
 *.bin
 *.log
-.env
+api-gateway/.env

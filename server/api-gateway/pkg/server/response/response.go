@@ -11,39 +11,6 @@ type Object struct {
 	Success bool   `json:"success"`
 }
 
-func OK(c *gin.Context, data any) {
-	h := Object{
-		Success: true,
-		Data:    data,
-	}
-	c.JSON(http.StatusOK, h)
-}
-
-func Created(c *gin.Context, data any) {
-	h := Object{
-		Success: true,
-		Data:    data,
-	}
-	c.JSON(http.StatusCreated, h)
-}
-
-func BadRequest(c *gin.Context, err error, data any) {
-	h := Object{
-		Success: false,
-		Message: err.Error(),
-		Data:    data,
-	}
-	c.JSON(http.StatusBadRequest, h)
-}
-
-func NotFound(c *gin.Context, err error) {
-	h := Object{
-		Success: false,
-		Message: err.Error(),
-	}
-	c.JSON(http.StatusNotFound, h)
-}
-
 func UnAuthorized(c *gin.Context, err error) {
 	h := Object{
 		Success: false,

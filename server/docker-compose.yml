@@ -10,7 +10,7 @@ services:
     networks:
       - backend
     env_file:
-      - .env
+      - api-gateway/.env
     restart: unless-stopped
     depends_on:
       - postgres

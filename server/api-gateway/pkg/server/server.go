@@ -29,17 +29,13 @@ func New(configs ...Configuration) (r *Server, err error) {
 	return
 }
 
-func WithHTTPServer(config config.Config, handler http.Handler, ctx context.Context) Configuration {
+func WithHTTPServer(handler http.Handler, config config.Config) Configuration {
 	return func(s *Server) (err error) {
 		s.http = &http.Server{
-			Addr:           ":" + config.Server.Port,
-			Handler:        handler,
-			MaxHeaderBytes: config.Server.MaxHeaderBytes,
-			ReadTimeout:    config.Server.ReadTimeout,
-			WriteTimeout:   config.Server.WriteTimeout,
+			Addr:    ":" + config.APP.Port,
+			Handler: handler,
 		}
-		s.ctx = ctx
-		return nil
+		return
 	}
 }
 

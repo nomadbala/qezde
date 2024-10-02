@@ -1,35 +1,34 @@
 package app
 
 import (
-	"context"
 	"gateway/internal/config"
 	"gateway/internal/handler"
 	"gateway/pkg/server"
+	"log"
 )
 
 func Run() {
 	configs, err := config.New()
 	if err != nil {
-		panic(err)
+		log.Fatalf("error occurred while loading configs", err)
 	}
 
-	ctx := context.Background()
+	handlers, err := handler.New(
+		handler.Dependencies{
+			Configs: configs,
+		},
+		handler.WithHTTPHandler())
 
-	dependencies := handler.Dependencies{
-		Configs: configs,
-	}
-
-	handlers, err := handler.New(dependencies, handler.WithHTTPHandler())
 	if err != nil {
-		panic(err)
+		log.Fatalf("error occurred while initializing handlers", err)
 	}
 
-	servers, err := server.New(server.WithHTTPServer(configs, handlers.HTTP, ctx))
+	servers, err := server.New(server.WithHTTPServer(handlers.HTTP, configs))
 	if err != nil {
-		panic(err)
+		log.Fatalf("error occurred while initializing server", err)
 	}
 
 	if err := servers.Run(); err != nil {
-		panic(err)
+		log.Fatalf("error occurred while running server", err)
 	}
 }

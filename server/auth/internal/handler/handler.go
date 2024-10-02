@@ -15,7 +15,7 @@ import (
 type Dependencies struct {
 	Configs config.Config
 
-	AuthenticationService service.AuthenticationService
+	AuthenticationService *service.AuthenticationService
 }
 
 type Handler struct {
@@ -39,7 +39,7 @@ func New(d Dependencies, configs ...Configuration) (h *Handler, err error) {
 	return
 }
 
-func WithHTTPHandler(d Dependencies) Configuration {
+func WithHTTPHandler() Configuration {
 	return func(h *Handler) (err error) {
 		h.HTTP = router.New()
 
@@ -59,11 +59,11 @@ func WithHTTPHandler(d Dependencies) Configuration {
 			response.OK(c, gin.H{})
 		})
 
-		orderHandler := http.NewAuthenticationHandler(&h.dependencies.AuthenticationService)
+		authHandler := http.NewAuthenticationHandler(h.dependencies.AuthenticationService)
 
 		api := h.HTTP.Group(h.dependencies.Configs.App.Path)
 		{
-			orderHandler.Routes(api)
+			authHandler.Routes(api)
 		}
 
 		return

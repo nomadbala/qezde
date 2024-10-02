@@ -50,7 +50,7 @@ func WithHTTPHandler() Configuration {
 		))
 
 		h.HTTP.GET("/health", func(c *gin.Context) {
-			c.JSON(200, gin.H{})
+			c.JSON(200, "API Gateway is healthy :)")
 		})
 
 		proxy := http.NewProxyHandler(h.dependencies.Configs)
