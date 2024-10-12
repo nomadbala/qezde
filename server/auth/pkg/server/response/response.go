@@ -19,56 +19,6 @@ func OK(c *gin.Context, data any) {
 	c.JSON(http.StatusOK, h)
 }
 
-func NoContent(c *gin.Context) {
-	h := Object{
-		Success: true,
-	}
-
-	c.JSON(http.StatusNoContent, h)
-}
-
-func Created(c *gin.Context, data any) {
-	h := Object{
-		Success: true,
-		Data:    data,
-	}
-	c.JSON(http.StatusCreated, h)
-}
-
-func BadRequest(c *gin.Context, err error, data any) {
-	h := Object{
-		Success: false,
-		Message: err.Error(),
-		Data:    data,
-	}
-	c.JSON(http.StatusBadRequest, h)
-}
-
-func NotFound(c *gin.Context, err error) {
-	h := Object{
-		Success: false,
-		Message: err.Error(),
-	}
-	c.JSON(http.StatusNotFound, h)
-}
-
-func UnAuthorized(c *gin.Context, err error) {
-	h := Object{
-		Success: false,
-		Message: err.Error(),
-	}
-
-	c.JSON(http.StatusUnauthorized, h)
-}
-
-func InternalServerError(c *gin.Context, err error) {
-	h := Object{
-		Success: false,
-		Message: err.Error(),
-	}
-	c.JSON(http.StatusInternalServerError, h)
-}
-
 func StatusRequestTimeout(c *gin.Context) {
 	h := Object{
 		Message: "timeout",

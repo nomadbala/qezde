@@ -1,5 +1,7 @@
 package main
 
-func main() {
+import "qezde/user/internal/app"
 
+func main() {
+	app.Run()
 }

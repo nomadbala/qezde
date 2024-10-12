@@ -1,4 +1,4 @@
-module gateway
+module github.com/qezde/api-gateway
 
 go 1.23.1
 

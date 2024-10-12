@@ -1,7 +1,7 @@
 package service
 
 import (
-	"auth/internal/config"
+	"qezde/auth/internal/config"
 )
 
 type Dependencies struct {

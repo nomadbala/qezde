@@ -1,10 +1,11 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
-	"github.com/kelseyhightower/envconfig"
 	"os"
 	"path/filepath"
+
+	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
 )
 
 type (
@@ -16,6 +17,7 @@ type (
 
 	AppConfig struct {
 		Port string
+		Path string
 	}
 
 	APIConfig struct {

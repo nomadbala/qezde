@@ -1,10 +1,11 @@
 package app
 
 import (
-	"gateway/internal/config"
-	"gateway/internal/handler"
-	"gateway/pkg/server"
 	"log"
+
+	"github.com/qezde/api-gateway/internal/config"
+	"github.com/qezde/api-gateway/internal/handler"
+	"github.com/qezde/api-gateway/pkg/server"
 )
 
 func Run() {
@@ -18,7 +19,6 @@ func Run() {
 			Configs: configs,
 		},
 		handler.WithHTTPHandler())
-
 	if err != nil {
 		log.Fatalf("error occurred while initializing handlers", err)
 	}

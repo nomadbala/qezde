@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"gateway/internal/config"
-	"gateway/internal/handler/http"
-	"gateway/pkg/server/response"
-	"gateway/pkg/server/router"
 	"github.com/gin-contrib/timeout"
 	"github.com/gin-gonic/gin"
+	"github.com/qezde/api-gateway/internal/config"
+	"github.com/qezde/api-gateway/internal/handler/http"
+	"github.com/qezde/api-gateway/pkg/server/response"
+	"github.com/qezde/api-gateway/pkg/server/router"
 	"time"
 )
 
@@ -55,7 +55,7 @@ func WithHTTPHandler() Configuration {
 
 		proxy := http.NewProxyHandler(h.dependencies.Configs)
 
-		api := h.HTTP.Group("/auth")
+		api := h.HTTP.Group(h.dependencies.Configs.APP.Path)
 		{
 			proxy.Routes(api, h.dependencies.Configs)
 		}

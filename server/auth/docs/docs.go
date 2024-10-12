@@ -25,7 +25,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "qezde/auth"
                 ],
                 "summary": "Sign in user",
                 "parameters": [
@@ -71,7 +71,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "qezde/auth"
                 ],
                 "summary": "Sign up user",
                 "parameters": [

@@ -1,18 +1,18 @@
 package app
 
 import (
-	"auth/internal/config"
-	"auth/internal/handler"
-	"auth/internal/service"
-	"auth/pkg/server"
 	"context"
 	"log"
+	"qezde/auth/internal/config"
+	"qezde/auth/internal/handler"
+	"qezde/auth/internal/service"
+	"qezde/auth/pkg/server"
 )
 
 func Run() {
 	configs, err := config.New()
 	if err != nil {
-		log.Fatalf("error occurred while loading configs", err)
+		log.Fatal("error occurred while loading configs", err)
 	}
 
 	ctx := context.Background()
@@ -21,7 +21,7 @@ func Run() {
 		service.Dependencies{Config: configs}, service.WithAuthenticationService(),
 	)
 	if err != nil {
-		log.Fatalf("error occurred while initializing services", err)
+		log.Fatal("error occurred while initializing services", err)
 	}
 
 	handlers, err := handler.New(
@@ -32,15 +32,15 @@ func Run() {
 		handler.WithHTTPHandler(),
 	)
 	if err != nil {
-		log.Fatalf("error occurred while initializing handlers", err)
+		log.Fatal("error occurred while initializing handlers", err)
 	}
 
 	servers, err := server.New(server.WithHTTPServer(configs, handlers.HTTP, ctx))
 	if err != nil {
-		log.Fatalf("error occurred while initializing servers", err)
+		log.Fatal("error occurred while initializing servers", err)
 	}
 
 	if err := servers.Run(); err != nil {
-		log.Fatalf("error occurred while initializing servers", err)
+		log.Fatal("error occurred while initializing servers", err)
 	}
 }

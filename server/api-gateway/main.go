@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gateway/internal/app"
+	"github.com/qezde/api-gateway/internal/app"
 )
 
 func main() {

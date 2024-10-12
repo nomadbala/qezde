@@ -3,9 +3,9 @@ package http
 import (
 	"bytes"
 	"errors"
-	"gateway/internal/config"
-	"gateway/pkg/server/response"
 	"github.com/gin-gonic/gin"
+	"github.com/qezde/api-gateway/internal/config"
+	"github.com/qezde/api-gateway/pkg/server/response"
 	"io"
 	"net/http"
 )
@@ -19,12 +19,7 @@ func NewProxyHandler(config config.Config) *ProxyHandler {
 }
 
 func (h *ProxyHandler) Routes(routerGroup *gin.RouterGroup, config config.Config) {
-	routerGroup.Any("/register", h.handleRequest(config.API.Auth))
-	routerGroup.Any("/login", h.handleRequest(config.API.Auth))
-
-	middlewaredRoutesGroup := routerGroup.Group("")
-	middlewaredRoutesGroup.Use(h.Middleware())
-	//middlewaredRoutesGroup.Any("/*action", h.handleRequest(config.API.Auth))
+	routerGroup.Any("/auth/*action", h.handleRequest(config.API.Auth))
 }
 
 func (h *ProxyHandler) handleRequest(targetURL string) gin.HandlerFunc {

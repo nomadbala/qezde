@@ -2,17 +2,17 @@ package http
 
 import (
 	"errors"
-	"gateway/internal/domain"
-	"gateway/pkg/server/response"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/qezde/api-gateway/internal/domain"
+	"github.com/qezde/api-gateway/pkg/server/response"
 	"strings"
 )
 
 func (h *ProxyHandler) Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		header := c.Request.Header.Get("Authorization")
+		header := c.Request.Header.Get("qezde/authorization")
 		if err := h.validateAuthorizationHeader(header); err != nil {
 			response.UnAuthorized(c, err)
 			return
@@ -31,10 +31,10 @@ func (h *ProxyHandler) Middleware() gin.HandlerFunc {
 
 func (h *ProxyHandler) validateAuthorizationHeader(header string) error {
 	if header == "" {
-		return errors.New("authorization header is missing")
+		return errors.New("qezde/authorization header is missing")
 	}
 	if !strings.HasPrefix(header, "Bearer ") {
-		return errors.New("authorization header is invalid")
+		return errors.New("qezde/authorization header is invalid")
 	}
 	return nil
 }
