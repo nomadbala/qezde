@@ -1,21 +1,19 @@
 package handler
 
 import (
-	"auth/internal/config"
-	"auth/internal/handler/http"
-	"auth/internal/service"
-	"auth/pkg/server/response"
-	"auth/pkg/server/router"
 	"github.com/gin-contrib/timeout"
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	"qezde/auth/internal/config"
+	"qezde/auth/internal/handler/http"
+	"qezde/auth/internal/service"
+	"qezde/auth/pkg/server/response"
+	"qezde/auth/pkg/server/router"
 )
 
 type Dependencies struct {
 	Configs config.Config
 
-	AuthenticationService service.AuthenticationService
+	AuthenticationService *service.AuthenticationService
 }
 
 type Handler struct {
@@ -39,7 +37,7 @@ func New(d Dependencies, configs ...Configuration) (h *Handler, err error) {
 	return
 }
 
-func WithHTTPHandler(d Dependencies) Configuration {
+func WithHTTPHandler() Configuration {
 	return func(h *Handler) (err error) {
 		h.HTTP = router.New()
 
@@ -53,17 +51,11 @@ func WithHTTPHandler(d Dependencies) Configuration {
 			}),
 		))
 
-		h.HTTP.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		authHandler := http.NewAuthenticationHandler(h.dependencies.AuthenticationService)
 
-		h.HTTP.GET("/health", func(c *gin.Context) {
-			response.OK(c, gin.H{})
-		})
-
-		orderHandler := http.NewAuthenticationHandler(&h.dependencies.AuthenticationService)
-
-		api := h.HTTP.Group(h.dependencies.Configs.App.Path)
+		api := h.HTTP.Group("")
 		{
-			orderHandler.Routes(api)
+			authHandler.Routes(api)
 		}
 
 		return

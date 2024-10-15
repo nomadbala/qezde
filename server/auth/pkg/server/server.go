@@ -1,13 +1,13 @@
 package server
 
 import (
-	"auth/internal/config"
 	"context"
 	"errors"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"qezde/auth/internal/config"
 	"syscall"
 	"time"
 )
@@ -32,11 +32,8 @@ func New(configs ...Configuration) (r *Server, err error) {
 func WithHTTPServer(config config.Config, handler http.Handler, ctx context.Context) Configuration {
 	return func(s *Server) (err error) {
 		s.http = &http.Server{
-			Addr:           ":" + config.Server.Port,
-			Handler:        handler,
-			MaxHeaderBytes: config.Server.MaxHeaderBytes,
-			ReadTimeout:    config.Server.ReadTimeout,
-			WriteTimeout:   config.Server.WriteTimeout,
+			Addr:    ":" + config.App.Port,
+			Handler: handler,
 		}
 		s.ctx = ctx
 		return nil

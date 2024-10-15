@@ -1,4 +1,4 @@
-FROM golang:1.23.1-alpine as builder
+FROM golang:1.23.1-alpine AS builder
 
 WORKDIR /build
 
@@ -15,3 +15,5 @@ COPY --from=builder /build/.env ./.env
 COPY --from=builder /build/api-gateway ./api-gateway
 
 ENTRYPOINT ["./api-gateway"]
+
+EXPOSE 8080

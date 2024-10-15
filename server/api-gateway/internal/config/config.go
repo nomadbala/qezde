@@ -1,60 +1,31 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
-	"github.com/kelseyhightower/envconfig"
 	"os"
 	"path/filepath"
-	"time"
+
+	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
 )
 
-type (
-	Config struct {
-		Server     ServerConfig
-		CORS       CORSConfig
-		API        APIConfig
-		Middleware MiddlewareConfig
-	}
+type Config struct {
+	APP        AppConfig
+	API        APIConfig
+	Middleware MiddlewareConfig
+}
 
-	ServerConfig struct {
-		Port           string
-		MaxHeaderBytes int
-		ReadTimeout    time.Duration
-		WriteTimeout   time.Duration
-	}
+type AppConfig struct {
+	Port string
+	Path string
+}
 
-	CORSConfig struct {
-		AllowedOrigins   []string
-		AllowedMethods   []string
-		AllowedHeaders   []string
-		ExposedHeaders   []string
-		AllowCredentials bool
-	}
+type APIConfig struct {
+	Auth string
+}
 
-	APIConfig struct {
-		Auth string
-	}
-
-	MiddlewareConfig struct {
-		SigningKey string
-	}
-)
-
-// Server
-const (
-	DefaultPort    = "8080"
-	MaxHeaderBytes = 1 << 20
-	ReadTimeOut    = 10 * time.Second
-	WriteTimeOut   = 10 * time.Second
-)
-
-// CORS
-var (
-	AllowOrigins  = []string{"*"}
-	AllowMethods  = []string{"GET", "POST", "PUT", "PATCH", "DELETE"}
-	AllowHeaders  = []string{"Origin", "Content-Length", "Content-Type", "Accept", "Authorization"}
-	ExposeHeaders = []string{"Content-Length"}
-)
+type MiddlewareConfig struct {
+	SigningKey string
+}
 
 func New() (config Config, err error) {
 	root, err := os.Getwd()
@@ -67,19 +38,8 @@ func New() (config Config, err error) {
 		return
 	}
 
-	config.Server = ServerConfig{
-		Port:           DefaultPort,
-		MaxHeaderBytes: MaxHeaderBytes,
-		ReadTimeout:    ReadTimeOut,
-		WriteTimeout:   WriteTimeOut,
-	}
-
-	config.CORS = CORSConfig{
-		AllowedOrigins:   AllowOrigins,
-		AllowedMethods:   AllowMethods,
-		AllowedHeaders:   AllowHeaders,
-		ExposedHeaders:   ExposeHeaders,
-		AllowCredentials: true,
+	if err = envconfig.Process("APP", &config.APP); err != nil {
+		return
 	}
 
 	signingKey := os.Getenv("SIGNING_KEY")

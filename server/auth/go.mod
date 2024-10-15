@@ -1,4 +1,4 @@
-module auth
+module qezde/auth
 
 go 1.23.1
 

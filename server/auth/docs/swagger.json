@@ -14,7 +14,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    ""
                 ],
                 "summary": "Sign in user",
                 "parameters": [
@@ -60,7 +60,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "qezde/auth"
                 ],
                 "summary": "Sign up user",
                 "parameters": [

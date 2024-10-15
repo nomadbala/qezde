@@ -54,7 +54,7 @@ func New() (config Config, err error) {
 		WriteTimeout:   WriteTimeOut,
 	}
 
-	if err = envconfig.Process("APP", &config); err != nil {
+	if err = envconfig.Process("APP", &config.App); err != nil {
 		return
 	}
 

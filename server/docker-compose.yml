@@ -10,11 +10,26 @@ services:
     networks:
       - backend
     env_file:
-      - .env
+      - api-gateway/.env
     restart: unless-stopped
     depends_on:
       - postgres
       - redis
+      - auth
+
+  auth:
+    image: auth-service
+    container_name: auth-service
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT_AUTH_SERVICE}:${PORT_AUTH_SERVICE}"
+    networks:
+      - backend
+    env_file:
+      - auth/.env
+    restart: unless-stopped
 
   postgres:
     image: postgres:latest
@@ -36,7 +51,7 @@ services:
     container_name: qezde-redis
     restart: unless-stopped
     ports:
-      - "${REDIS_PORT}:${REDIS_PORT}"
+      - "${PORT_REDIS}:${PORT_REDIS}"
     volumes:
       - redis-data:/data
 

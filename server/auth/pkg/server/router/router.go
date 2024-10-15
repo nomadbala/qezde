@@ -1,9 +1,9 @@
 package router
 
 import (
-	"auth/pkg/server/response"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"qezde/auth/pkg/server/response"
 )
 
 func New() (r *gin.Engine) {
