@@ -18,6 +18,7 @@ func (h *UserHandler) Routes(r *gin.RouterGroup) {
 	api := r.Group("/user")
 	{
 		api.GET("/", h.GetAllUsers)
+		api.POST("/", h.CreateUser)
 	}
 }
 

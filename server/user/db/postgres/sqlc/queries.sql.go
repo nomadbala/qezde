@@ -109,7 +109,7 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE user_schema.users
-SET first_name = $2 AND last_name = $3 AND updated_at = CURRENT_TIMESTAMP
+SET first_name = $2, last_name = $3, updated_at = CURRENT_TIMESTAMP
 WHERE id = $1
 RETURNING id, username, password_hash, salt, email, email_verified, first_name, last_name, date_of_birth, created_at, updated_at
 `
