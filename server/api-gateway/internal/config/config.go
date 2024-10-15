@@ -8,26 +8,24 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
-type (
-	Config struct {
-		APP        AppConfig
-		API        APIConfig
-		Middleware MiddlewareConfig
-	}
+type Config struct {
+	APP        AppConfig
+	API        APIConfig
+	Middleware MiddlewareConfig
+}
 
-	AppConfig struct {
-		Port string
-		Path string
-	}
+type AppConfig struct {
+	Port string
+	Path string
+}
 
-	APIConfig struct {
-		Auth string
-	}
+type APIConfig struct {
+	Auth string
+}
 
-	MiddlewareConfig struct {
-		SigningKey string
-	}
-)
+type MiddlewareConfig struct {
+	SigningKey string
+}
 
 func New() (config Config, err error) {
 	root, err := os.Getwd()

@@ -2,10 +2,13 @@ package app
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"qezde/api-gateway/pkg/server"
+	"syscall"
 
-	"github.com/qezde/api-gateway/internal/config"
-	"github.com/qezde/api-gateway/internal/handler"
-	"github.com/qezde/api-gateway/pkg/server"
+	"qezde/api-gateway/internal/config"
+	"qezde/api-gateway/internal/handler"
 )
 
 func Run() {
@@ -14,21 +17,21 @@ func Run() {
 		log.Fatal("error occurred while loading configs", err)
 	}
 
-	handlers, err := handler.New(
+	handlers := handler.New(
 		handler.Dependencies{
 			Configs: configs,
 		},
-		handler.WithHTTPHandler())
-	if err != nil {
-		log.Fatal("error occurred while initializing handlers", err)
-	}
+	)
 
-	servers, err := server.New(server.WithHTTPServer(handlers.HTTP))
-	if err != nil {
-		log.Fatal("error occurred while initializing server", err)
-	}
+	servers := server.NewServer(configs, handlers)
 
-	if err := servers.Run(configs); err != nil {
-		log.Fatal("error occurred while running server", err)
+	servers.Start()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	if err := servers.Shutdown(); err != nil {
+		log.Fatal("server forced to shutdown: ", err)
 	}
 }
