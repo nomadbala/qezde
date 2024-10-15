@@ -2,20 +2,19 @@ package server
 
 import (
 	"context"
-	"errors"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	"github.com/qezde/api-gateway/internal/config"
 )
 
 type Server struct {
-	http *http.Server
-	ctx  context.Context
+	fiber *fiber.App
+	ctx   context.Context
 }
 
 type Configuration func(s *Server) error
@@ -30,19 +29,16 @@ func New(configs ...Configuration) (r *Server, err error) {
 	return
 }
 
-func WithHTTPServer(handler http.Handler, config config.Config) Configuration {
+func WithHTTPServer(handler *fiber.App) Configuration {
 	return func(s *Server) (err error) {
-		s.http = &http.Server{
-			Addr:    ":" + config.APP.Port,
-			Handler: handler,
-		}
+		s.fiber = handler
 		return
 	}
 }
 
-func (s *Server) Run() (err error) {
+func (s *Server) Run(config config.Config) (err error) {
 	go func() {
-		if err = s.http.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err = s.fiber.Listen(":" + config.APP.Port); err != nil {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
@@ -51,10 +47,12 @@ func (s *Server) Run() (err error) {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
-	ctx, cancel := context.WithTimeout(s.ctx, 10*time.Second)
+	// Контекст с таймаутом для завершения
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err = s.http.Shutdown(ctx); err != nil {
+	// Останавливаем сервер Fiber
+	if err = s.fiber.ShutdownWithContext(ctx); err != nil {
 		log.Fatalf("Server forced to shutdown: %+v", err)
 		return
 	}

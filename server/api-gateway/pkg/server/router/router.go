@@ -1,18 +1,18 @@
 package router
 
 import (
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/qezde/api-gateway/pkg/server/response"
 )
 
-func New() (r *gin.Engine) {
-	r = gin.New()
+func New() (r *fiber.App) {
+	r = fiber.New(fiber.Config{})
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "PUT", "POST", "DELETE"},
-		AllowHeaders:     []string{"*"},
+		AllowOrigins:     "*",
+		AllowMethods:     "GET, POST, PUT, PATCH, DELETE",
+		AllowHeaders:     "*",
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))

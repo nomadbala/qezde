@@ -1,7 +1,7 @@
 package response
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"net/http"
 )
 
@@ -11,45 +11,36 @@ type Object struct {
 	Success bool   `json:"success"`
 }
 
-func UnAuthorized(c *gin.Context, err error) {
+func UnAuthorized(c *fiber.Ctx, err error) error {
 	h := Object{
 		Success: false,
 		Message: err.Error(),
 	}
 
-	c.JSON(http.StatusUnauthorized, h)
+	return c.Status(http.StatusUnauthorized).JSON(h)
 }
 
-func InternalServerError(c *gin.Context, err error) {
+func InternalServerError(c *fiber.Ctx, err error) error {
 	h := Object{
 		Success: false,
 		Message: err.Error(),
 	}
-	c.JSON(http.StatusInternalServerError, h)
+	return c.Status(http.StatusInternalServerError).JSON(h)
 }
 
-func StatusRequestTimeout(c *gin.Context) {
-	h := Object{
-		Message: "timeout",
-		Success: false,
-	}
-	c.JSON(http.StatusRequestTimeout, h)
-}
-
-func MethodNotAllowedMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
+func MethodNotAllowedMiddleware() fiber.Handler {
+	return func(c *fiber.Ctx) error {
 		allowedMethods := map[string]bool{
 			http.MethodGet:    true,
 			http.MethodPost:   true,
 			http.MethodPut:    true,
 			http.MethodDelete: true,
 		}
-		if !allowedMethods[c.Request.Method] {
-			c.JSON(http.StatusMethodNotAllowed, gin.H{"error": "Method Not Allowed"})
-			c.Abort()
-			return
+
+		if !allowedMethods[c.Method()] {
+			return c.Status(http.StatusMethodNotAllowed).JSON(fiber.Map{"error": "Method Not Allowed"})
 		}
 
-		c.Next()
+		return c.Next()
 	}
 }

@@ -3,69 +3,74 @@ package http
 import (
 	"bytes"
 	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/qezde/api-gateway/internal/config"
-	"github.com/qezde/api-gateway/pkg/server/response"
 	"io"
 	"net/http"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/qezde/api-gateway/internal/config"
+	"github.com/qezde/api-gateway/pkg/server/response"
 )
 
 type ProxyHandler struct {
-	config config.Config
+	config     config.Config
+	httpClient *http.Client
 }
 
 func NewProxyHandler(config config.Config) *ProxyHandler {
-	return &ProxyHandler{config: config}
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	return &ProxyHandler{
+		config:     config,
+		httpClient: client,
+	}
 }
 
-func (h *ProxyHandler) Routes(routerGroup *gin.RouterGroup, config config.Config) {
-	routerGroup.Any("/auth/*action", h.handleRequest(config.API.Auth))
+func (h *ProxyHandler) Routes(routerGroup fiber.Router, config config.Config) {
+	routerGroup.All("/auth/*action", h.handleRequest(config.API.Auth))
 }
 
-func (h *ProxyHandler) handleRequest(targetURL string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		path := c.Param("action")
-		method := c.Request.Method
-		query := c.Request.URL.RawQuery
-
+func (h *ProxyHandler) handleRequest(targetURL string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		path := c.Params("action")
+		query := c.Request().URI().QueryString()
 		target := targetURL + path
-		if query != "" {
-			target += "?" + query
+		if len(query) > 0 {
+			target += "?" + string(query)
 		}
 
-		body, err := io.ReadAll(c.Request.Body)
+		body := bytes.NewBuffer(c.Body())
+
+		req, err := http.NewRequest(c.Method(), target, body)
 		if err != nil {
-			response.InternalServerError(c, errors.New("unable to read request body"))
-			return
+			return response.InternalServerError(c, errors.New("failed to create request: "+err.Error()))
 		}
 
-		req, err := http.NewRequest(method, target, bytes.NewBuffer(body))
-		if err != nil {
-			response.InternalServerError(c, errors.New("unable to create request"))
-			return
-		}
-
-		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
-
-		for key, values := range c.Request.Header {
+		for key, values := range c.GetReqHeaders() {
 			for _, value := range values {
 				req.Header.Add(key, value)
 			}
 		}
 
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := h.httpClient.Do(req)
 		if err != nil {
-			response.InternalServerError(c, errors.New("request to backend service failed"))
-			return
+			return response.InternalServerError(c, errors.New("failed to forward request: "+err.Error()))
 		}
-		defer resp.Body.Close()
-
-		c.Writer.WriteHeader(resp.StatusCode)
-		for key, values := range resp.Header {
-			for _, value := range values {
-				c.Writer.Header().Add(key, value)
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				return
 			}
+		}(resp.Body)
+
+		c.Set(fiber.HeaderContentType, resp.Header.Get(fiber.HeaderContentType))
+		c.Status(resp.StatusCode)
+
+		if _, err := io.Copy(c.Response().BodyWriter(), resp.Body); err != nil {
+			return response.InternalServerError(c, errors.New("failed to copy response body: "+err.Error()))
 		}
-		io.Copy(c.Writer, resp.Body)
+
+		return nil
 	}
 }

@@ -11,7 +11,7 @@ import (
 func Run() {
 	configs, err := config.New()
 	if err != nil {
-		log.Fatalf("error occurred while loading configs", err)
+		log.Fatal("error occurred while loading configs", err)
 	}
 
 	handlers, err := handler.New(
@@ -20,15 +20,15 @@ func Run() {
 		},
 		handler.WithHTTPHandler())
 	if err != nil {
-		log.Fatalf("error occurred while initializing handlers", err)
+		log.Fatal("error occurred while initializing handlers", err)
 	}
 
-	servers, err := server.New(server.WithHTTPServer(handlers.HTTP, configs))
+	servers, err := server.New(server.WithHTTPServer(handlers.HTTP))
 	if err != nil {
-		log.Fatalf("error occurred while initializing server", err)
+		log.Fatal("error occurred while initializing server", err)
 	}
 
-	if err := servers.Run(); err != nil {
-		log.Fatalf("error occurred while running server", err)
+	if err := servers.Run(configs); err != nil {
+		log.Fatal("error occurred while running server", err)
 	}
 }

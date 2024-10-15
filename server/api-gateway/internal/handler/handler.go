@@ -1,13 +1,12 @@
 package handler
 
 import (
-	"github.com/gin-contrib/timeout"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/csrf"
+	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/qezde/api-gateway/internal/config"
 	"github.com/qezde/api-gateway/internal/handler/http"
-	"github.com/qezde/api-gateway/pkg/server/response"
 	"github.com/qezde/api-gateway/pkg/server/router"
-	"time"
 )
 
 type Dependencies struct {
@@ -16,7 +15,7 @@ type Dependencies struct {
 
 type Handler struct {
 	dependencies Dependencies
-	HTTP         *gin.Engine
+	HTTP         *fiber.App
 }
 
 type Configuration func(h *Handler) error
@@ -39,19 +38,18 @@ func WithHTTPHandler() Configuration {
 	return func(h *Handler) (err error) {
 		h.HTTP = router.New()
 
-		h.HTTP.Use(timeout.New(
-			timeout.WithTimeout(60*time.Second),
-			timeout.WithHandler(func(ctx *gin.Context) {
-				ctx.Next()
-			}),
-			timeout.WithResponse(func(ctx *gin.Context) {
-				response.StatusRequestTimeout(ctx)
-			}),
-		))
+		h.HTTP.Use(healthcheck.New(healthcheck.Config{
+			LivenessProbe: func(c *fiber.Ctx) bool {
+				return true
+			},
+			LivenessEndpoint: "/live",
+			ReadinessProbe: func(c *fiber.Ctx) bool {
+				return true
+			},
+			ReadinessEndpoint: "/ready",
+		}))
 
-		h.HTTP.GET("/health", func(c *gin.Context) {
-			c.JSON(200, "API Gateway is healthy :)")
-		})
+		h.HTTP.Use(csrf.New())
 
 		proxy := http.NewProxyHandler(h.dependencies.Configs)
 
