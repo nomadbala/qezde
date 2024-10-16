@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"qezde/user/db/postgres/sqlc"
 	"qezde/user/internal/config"
 	"qezde/user/internal/domain/user"
 	"qezde/user/internal/repository/postgres"

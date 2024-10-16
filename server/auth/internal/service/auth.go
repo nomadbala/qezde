@@ -6,12 +6,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"qezde/auth/internal/config"
 	"qezde/auth/internal/domain"
-	auth2 "qezde/protogen/auth"
 )
 
 type AuthenticationService struct {
 	config config.Config
-	client auth2.AuthServiceClient
 }
 
 func NewAuthenticationService(config config.Config) *AuthenticationService {
