@@ -1,49 +1,56 @@
 package user
 
 import (
+	"fmt"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
-	"qezde/user/db/postgres/sqlc"
+	"net/mail"
+	"time"
 )
 
 type DTO struct {
-	ID            uuid.UUID        `json:"id"`
-	Username      string           `json:"username"`
-	Email         string           `json:"email"`
-	EmailVerified *bool            `json:"email_verified"`
-	FirstName     *string          `json:"firstName"`
-	LastName      *string          `json:"lastName"`
-	DateOfBirth   pgtype.Date      `json:"date_of_birth"`
-	CreatedAt     pgtype.Timestamp `json:"created_at"`
-	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+	ID            uuid.UUID  `json:"id"`
+	Username      string     `json:"username"`
+	Email         string     `json:"email"`
+	EmailVerified *bool      `json:"email_verified"`
+	FirstName     *string    `json:"first_name"`
+	LastName      *string    `json:"last_name"`
+	DateOfBirth   *time.Time `json:"date_of_birth"`
+	CreatedAt     *time.Time `json:"created_at"`
+	UpdatedAt     *time.Time `json:"updated_at"`
 }
 
-func ConvertEntityToDTO(user sqlc.User) (DTO, error) {
-	dto := &DTO{
-		ID:            user.ID,
-		Username:      user.Username,
-		Email:         user.Email,
-		EmailVerified: user.EmailVerified,
-		FirstName:     user.FirstName,
-		LastName:      user.LastName,
-		DateOfBirth:   user.DateOfBirth,
-		CreatedAt:     user.CreatedAt,
-		UpdatedAt:     user.UpdatedAt,
-	}
-
-	return dto, nil
+type CreateUserRequest struct {
+	Username     string `json:"username" binding:"required"`
+	Email        string `json:"email" binding:"required"`
+	PasswordHash string `db:"password_hash" json:"password_hash" binding:"required"`
+	Salt         string `db:"salt" json:"salt" binding:"required"`
 }
 
-func ConvertEntityToDTOs(users []sqlc.User) ([]DTO, error) {
-	dtos := make([]DTO, len(users))
+const (
+	CreateUserRequestUsernameMinLength = 3
+	CreateUserRequestUsernameMaxLength = 32
+)
 
-	for i, user := range users {
-		dto, err := ConvertEntityToDTO(user)
-		if err != nil {
-			return nil, err
-		}
-		dtos[i] = *dto
+func (r *CreateUserRequest) Validate() (err error) {
+	if len(r.Username) < CreateUserRequestUsernameMinLength {
+		return fmt.Errorf("username must be longer than 3 characters")
 	}
 
-	return dtos, nil
+	if len(r.Username) > CreateUserRequestUsernameMaxLength {
+		return fmt.Errorf("username must not exceed 32 characters")
+	}
+
+	_, err = mail.ParseAddress(r.Email)
+	if err != nil {
+		return fmt.Errorf("invalid email")
+	}
+
+	if (len(r.PasswordHash)) == 0 || len(r.Salt) == 0 {
+		return fmt.Errorf("invalid password hash or salt")
+	}
+
+	return
+}
+
+type UpdateUserRequest struct {
 }
