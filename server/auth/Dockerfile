@@ -1,4 +1,4 @@
-FROM golang:1.23.1-alpine as builder
+FROM golang:1.23.1-alpine AS builder
 
 WORKDIR /build
 
@@ -10,7 +10,7 @@ COPY . .
 
 RUN go build -o auth-service .
 
-FROM alpine:3.18 as hoster
+FROM alpine:3.18 AS hoster
 COPY --from=builder /build/.env ./.env
 COPY --from=builder /build/auth-service ./auth-service
 

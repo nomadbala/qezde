@@ -32,8 +32,8 @@ func New(d Dependencies) *mux.Router {
 	}
 
 	h.router.HandleFunc("/health", h.healthCheckHandler).Methods("GET")
-	h.router.HandleFunc("/auth/{action}", h.proxyHandler).Methods("POST")
-	h.router.Use(h.middleware)
+	h.router.HandleFunc("/auth/{action}", h.proxyHandler).Methods("GET")
+	//h.router.Use(h.middleware)
 
 	return h.router
 }

@@ -10,7 +10,7 @@ COPY . .
 
 RUN go build -o api-gateway .
 
-FROM alpine:3.18 as hoster
+FROM alpine:3.18 AS hoster
 COPY --from=builder /build/.env ./.env
 COPY --from=builder /build/api-gateway ./api-gateway
 
