@@ -1,4 +1,4 @@
-FROM golang:1.23.1-alpine AS builder
+FROM golang:1.23.2-alpine AS builder
 
 WORKDIR /build
 
@@ -10,10 +10,10 @@ COPY . .
 
 RUN go build -o api-gateway .
 
-FROM alpine:3.18 AS hoster
+FROM alpine:3.20.3 AS hoster
 COPY --from=builder /build/.env ./.env
 COPY --from=builder /build/api-gateway ./api-gateway
 
 ENTRYPOINT ["./api-gateway"]
 
-EXPOSE 8080
+EXPOSE ${APP_PORT}

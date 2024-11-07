@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google"
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import InitializeSuperTokens from "@/lib/supertoken";
+import { Providers } from './providers';
+
+InitializeSuperTokens();
 
 const montserrat = Montserrat({subsets: ['latin']})
 
@@ -25,10 +29,8 @@ export default function RootLayout({
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body
-        className={cn(montserrat.className, "antialiased")}
-      >
-        {children}
+      <body>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

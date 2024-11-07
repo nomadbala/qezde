@@ -1,5 +1,7 @@
+import RegistrationForm from "@/components/complex/registration-form";
+
 export default function Home() {
   return (
-    <h1>Home</h1>
+    <RegistrationForm />
   );
 }

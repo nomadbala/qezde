@@ -29,11 +29,11 @@ const config: Config = {
   				foreground: 'hsl(var(--secondary-foreground))'
   			},
   			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
+  				DEFAULT: 'hsl(0, 0%, 34%)',
   				foreground: 'hsl(var(--muted-foreground))'
   			},
   			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
+				DEFAULT: 'hsl(173, 44%, 55%)',
   				foreground: 'hsl(var(--accent-foreground))'
   			},
   			destructive: {

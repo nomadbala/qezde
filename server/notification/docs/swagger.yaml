@@ -1,0 +1,68 @@
+definitions:
+  mail.WelcomeMailRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+    required:
+    - code
+    - email
+    type: object
+info:
+  contact: {}
+paths:
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Check the health of the service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health Check
+      tags:
+      - health
+  /notification/welcome_message:
+    post:
+      consumes:
+      - application/json
+      description: Sends a welcome email to the user with the provided email and code.
+      parameters:
+      - description: Welcome Mail Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/mail.WelcomeMailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send Welcome Message
+      tags:
+      - notifications
+swagger: "2.0"

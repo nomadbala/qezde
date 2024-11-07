@@ -11,11 +11,13 @@ services:
       - backend
     env_file:
       - api-gateway/.env
-    restart: unless-stopped
+    restart: always
     depends_on:
       - postgres
       - redis
       - auth
+      - notification
+      - keycloak
 
   auth:
     image: auth-service
@@ -29,7 +31,21 @@ services:
       - backend
     env_file:
       - auth/.env
-    restart: unless-stopped
+    restart: always
+
+  notification:
+    image: notification-service
+    container_name: notification-service
+    build:
+      context: ./notification
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT_NOTIFICATION_SERVICE}:${PORT_NOTIFICATION_SERVICE}"
+    networks:
+      - backend
+    env_file:
+      - notification/.env
+    restart: always
 
   postgres:
     image: postgres:latest
@@ -42,18 +58,46 @@ services:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     networks:
       - backend
-    restart: unless-stopped
+    restart: always
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', "${POSTGRES_USER}", '-d', '${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:latest
     container_name: qezde-redis
-    restart: unless-stopped
+    restart: always
     ports:
       - "${PORT_REDIS}:${PORT_REDIS}"
+    networks:
+      - backend
     volumes:
       - redis-data:/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.5
+    container_name: qezde-keycloak
+    restart: always
+    environment:
+      KEYCLOAK_ADMIN: "${KEYCLOAK_ADMIN}"
+      KEYCLOAK_ADMIN_PASSWORD: "${KEYCLOAK_ADMIN_PASSWORD}"
+      DB_VENDOR: "${KEYCLOAK_DB_VENDOR}"
+      DB_ADDR: "${KEYCLOAK_DB_ADDR}"
+      DB_DATABASE: "${POSTGRES_DB}"
+      DB_USER: "${POSTGRES_USER}"
+      DB_PASSWORD: "${POSTGRES_PASSWORD}"
+    volumes:
+      - './config/keycloak/import:/opt/keycloak/data/import'
+    ports:
+      - "${KEYCLOAK_PORT}:8080"
+    networks:
+      - backend
+    command:
+      - start-dev
 
 
 networks:

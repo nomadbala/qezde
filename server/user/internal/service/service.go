@@ -1,11 +1,13 @@
 package service
 
-import "qezde/user/internal/domain/user"
+import (
+	"qezde/user/internal/domain/user"
+)
 
 type Configuration func(s *Service) error
 
 type Service struct {
-	userRepository user.Service
+	userRepository user.Repository
 }
 
 func New(configs ...Configuration) (s *Service, err error) {
@@ -22,7 +24,7 @@ func New(configs ...Configuration) (s *Service, err error) {
 
 func WithUserRepository(userRepository user.Repository) Configuration {
 	return func(s *Service) error {
-		s.userRepository = NewUserService(userRepository)
+		s.userRepository = userRepository
 		return nil
 	}
 }

@@ -5,59 +5,34 @@ import (
 	"errors"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
+	"qezde/user/internal/config"
 	"time"
-
-	"github.com/qezde/api-gateway/internal/config"
 )
 
 type Server struct {
-	http *http.Server
-	ctx  context.Context
+	server *http.Server
 }
 
-type Configuration func(s *Server) error
-
-func New(configs ...Configuration) (r *Server, err error) {
-	r = &Server{}
-	for _, cfg := range configs {
-		if err = cfg(r); err != nil {
-			return
-		}
-	}
-	return
-}
-
-func WithHTTPServer(handler http.Handler, config config.Config) Configuration {
-	return func(s *Server) (err error) {
-		s.http = &http.Server{
-			Addr:    ":" + config.APP.Port,
-			Handler: handler,
-		}
-		return
+func NewServer(configs config.Config, handlers http.Handler) *Server {
+	return &Server{
+		server: &http.Server{
+			Addr:    ":" + configs.App.Port,
+			Handler: handlers,
+		},
 	}
 }
 
-func (s *Server) Run() (err error) {
+func (s *Server) Start() {
 	go func() {
-		if err = s.http.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("listen: %s\n", err)
+		if err := s.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal("server error: ", err)
 		}
 	}()
+}
 
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-	<-quit
-
-	ctx, cancel := context.WithTimeout(s.ctx, 10*time.Second)
+func (s *Server) Shutdown() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err = s.http.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %+v", err)
-		return
-	}
-
-	return
+	return s.server.Shutdown(ctx)
 }

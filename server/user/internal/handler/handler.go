@@ -1,25 +1,25 @@
 package handler
 
 import (
-	"github.com/gin-contrib/timeout"
-	"github.com/gin-gonic/gin"
+	"context"
+	"encoding/json"
+	"github.com/gorilla/mux"
+	"net/http"
 	"qezde/user/internal/config"
-	"qezde/user/internal/handler/http"
-	"qezde/user/internal/service"
-	"qezde/user/pkg/server/response"
-	"qezde/user/pkg/server/router"
-	"time"
+	"qezde/user/internal/domain/user"
 )
 
 type Dependencies struct {
-	Configs config.Config
-
-	UserService service.UserService
+	Configs     config.Config
+	UserService user.Service
+	Ctx         context.Context
 }
 
 type Handler struct {
 	dependencies Dependencies
-	HTTP         *gin.Engine
+	Router       *mux.Router
+	service      user.Service
+	Ctx          context.Context
 }
 
 type Configuration func(h *Handler) error
@@ -27,6 +27,9 @@ type Configuration func(h *Handler) error
 func New(d Dependencies, configs ...Configuration) (h *Handler, err error) {
 	h = &Handler{
 		dependencies: d,
+		Router:       mux.NewRouter(),
+		service:      d.UserService,
+		Ctx:          d.Ctx,
 	}
 
 	for _, cfg := range configs {
@@ -40,29 +43,20 @@ func New(d Dependencies, configs ...Configuration) (h *Handler, err error) {
 
 func WithHTTPHandler() Configuration {
 	return func(h *Handler) (err error) {
-		h.HTTP = router.New()
+		h.Router.HandleFunc("/health", h.HealthCheck).Methods(http.MethodGet)
 
-		h.HTTP.Use(timeout.New(
-			timeout.WithTimeout(60*time.Second),
-			timeout.WithHandler(func(ctx *gin.Context) {
-				ctx.Next()
-			}),
-			timeout.WithResponse(func(ctx *gin.Context) {
-				response.StatusRequestTimeout(ctx)
-			}),
-		))
+		h.Router.Use(h.corsMiddleware)
 
-		h.HTTP.GET("/health", func(c *gin.Context) {
-			c.JSON(200, "API Gateway is healthy :)")
-		})
-
-		userHandler := http.NewUserHandler(h.dependencies.UserService)
-
-		api := h.HTTP.Group("/api/v1")
-		{
-			userHandler.Routes(api)
-		}
+		api := h.Router.PathPrefix("/api/v1").Subrouter()
+		h.Routes(api)
 
 		return
 	}
+}
+
+func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	_ = json.NewEncoder(w).Encode("Healthy")
 }

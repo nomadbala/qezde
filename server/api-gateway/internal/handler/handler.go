@@ -2,18 +2,21 @@ package handler
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"io"
 	"net/http"
-	"strings"
+	"net/url"
 
-	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
+	"qezde/api-gateway/internal/domain"
+	"strings"
+	"time"
+
 	"github.com/gorilla/mux"
 	"qezde/api-gateway/internal/config"
-	"qezde/api-gateway/internal/domain"
+	"qezde/api-gateway/pkg/log"
 )
 
 type Dependencies struct {
@@ -23,50 +26,98 @@ type Dependencies struct {
 type Handler struct {
 	dependencies Dependencies
 	router       *mux.Router
+	httpClient   *http.Client
 }
 
 func New(d Dependencies) *mux.Router {
 	h := &Handler{
 		dependencies: d,
 		router:       mux.NewRouter(),
+		httpClient: &http.Client{
+			Timeout: 10 * time.Second,
+		},
 	}
 
-	h.router.HandleFunc("/health", h.healthCheckHandler).Methods("GET")
-	h.router.HandleFunc("/auth/{action}", h.proxyHandler).Methods("GET")
-	//h.router.Use(h.middleware)
+	h.router.Use(h.corsMiddleware)
+	h.router.Use(h.loggingMiddleware)
+
+	h.router.HandleFunc("/health", h.healthCheck).Methods(http.MethodGet)
+
+	authRouter := h.router.PathPrefix("/auth").Subrouter()
+	authRouter.HandleFunc("/{action}", h.proxyHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch)
+
+	api := h.router.PathPrefix("/api/v1").Subrouter()
+
+	api.Use(h.authMiddleware)
+
+	notificationRouter := api.PathPrefix("/notification").Subrouter()
+	notificationRouter.HandleFunc("/{action}", h.proxyHandler).Methods(http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch)
 
 	return h.router
 }
 
 func (h *Handler) proxyHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	action := mux.Vars(r)["action"]
-	targetURL := h.dependencies.Configs.API.Auth + "/" + action
+	servicePath := strings.TrimPrefix(r.URL.Path, "/notification/")
 
-	method := r.Method
-	query := r.URL.RawQuery
-
-	if query != "" {
-		targetURL += "?" + query
+	var targetURL string
+	if strings.Contains(r.URL.Path, "/notification/") {
+		targetURL = h.dependencies.Configs.API.Notification
+	} else if strings.Contains(r.URL.Path, "/auth/") {
+		targetURL = h.dependencies.Configs.API.Auth
+	} else {
+		http.Error(w, "Unknown service", http.StatusBadRequest)
+		return
 	}
+
+	fullURL, err := url.Parse(targetURL + "/" + action)
+	if err != nil {
+		logger.Log.Errorw("URL parse error",
+			"error", err,
+			"target", targetURL,
+			"action", action,
+		)
+		http.Error(w, "Invalid target URL", http.StatusInternalServerError)
+		return
+	}
+
+	fullURL.RawQuery = r.URL.RawQuery
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "unable to read request body", http.StatusInternalServerError)
+		logger.Log.Errorw("Request body read error", "error", err)
+		http.Error(w, "Unable to read request body", http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
 
-	req, err := http.NewRequest(method, targetURL, bytes.NewBuffer(body))
+	req, err := http.NewRequest(r.Method, fullURL.String(), bytes.NewBuffer(body))
 	if err != nil {
-		http.Error(w, "unable to create request", http.StatusInternalServerError)
+		logger.Log.Errorw("Request creation error",
+			"error", err,
+			"method", r.Method,
+			"url", fullURL.String(),
+		)
+		http.Error(w, "Unable to create request", http.StatusInternalServerError)
 		return
 	}
 
-	req.Header = r.Header.Clone()
+	safeCopyHeaders(r.Header, req.Header)
 
-	resp, err := http.DefaultClient.Do(req)
+	logger.Log.Infow("Proxying request",
+		"method", r.Method,
+		"url", fullURL.String(),
+		"service_path", servicePath,
+	)
+
+	resp, err := h.httpClient.Do(req)
 	if err != nil {
-		http.Error(w, "request to backend service failed", http.StatusInternalServerError)
+		logger.Log.Errorw("Backend service request failed",
+			"error", err,
+			"url", fullURL.String(),
+		)
+		http.Error(w, "Request to backend service failed: ", http.StatusBadGateway)
 		return
 	}
 	defer resp.Body.Close()
@@ -78,35 +129,31 @@ func (h *Handler) proxyHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	io.Copy(w, resp.Body)
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		logger.Log.Errorw("Response body copy error", "error", err)
+	}
 }
 
-func (h *Handler) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) healthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	response := map[string]string{"status": "UP"}
-	json.NewEncoder(w).Encode(response)
+	response := "Healthy"
+	_ = json.NewEncoder(w).Encode(response)
 }
 
-func (h *Handler) middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		header := r.Header.Get("Authorization")
-		if err := h.validateAuthorizationHeader(header); err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
+func safeCopyHeaders(src http.Header, dst http.Header) {
+	safeHeaders := []string{
+		"Accept",
+		"Content-Type",
+		"Authorization",
+		"User-Agent",
+	}
+
+	for _, header := range safeHeaders {
+		if values := src.Values(header); len(values) > 0 {
+			dst[header] = values
 		}
-
-		token := strings.TrimPrefix(header, "Bearer ")
-		userId, err := h.parseToken(token)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), "userId", userId)
-		r = r.WithContext(ctx)
-
-		next.ServeHTTP(w, r)
-	})
+	}
 }
 
 func (h *Handler) validateAuthorizationHeader(header string) error {
@@ -122,7 +169,7 @@ func (h *Handler) validateAuthorizationHeader(header string) error {
 func (h *Handler) parseToken(accessToken string) (uuid.UUID, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &domain.TokenClaims{}, h.getTokenSigningKey())
 	if err != nil {
-		return uuid.Nil, errors.New("failed to parse token: " + err.Error())
+		return uuid.Nil, errors.New("failed to parse token: ")
 	}
 
 	if claims, ok := token.Claims.(*domain.TokenClaims); ok && token.Valid {

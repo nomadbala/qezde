@@ -11,7 +11,9 @@ import (
 type Config struct {
 	APP        AppConfig
 	API        APIConfig
+	CORS       CORSConfig
 	Middleware MiddlewareConfig
+	Keycloak   KeycloakConfig
 }
 
 type AppConfig struct {
@@ -20,11 +22,23 @@ type AppConfig struct {
 }
 
 type APIConfig struct {
-	Auth string
+	Auth         string
+	Notification string
 }
 
 type MiddlewareConfig struct {
 	SigningKey string
+}
+
+type CORSConfig struct {
+	AllowedOrigins []string
+}
+
+type KeycloakConfig struct {
+	Host         string
+	ClientId     string
+	ClientSecret string
+	Realm        string
 }
 
 func New() (config Config, err error) {
@@ -42,16 +56,19 @@ func New() (config Config, err error) {
 		return
 	}
 
-	signingKey := os.Getenv("SIGNING_KEY")
-	if signingKey == "" {
+	if err = envconfig.Process("MIDDLEWARE", &config.Middleware); err != nil {
 		return
 	}
 
-	config.Middleware = MiddlewareConfig{
-		SigningKey: signingKey,
+	if err = envconfig.Process("CORS", &config.CORS); err != nil {
+		return
 	}
 
 	if err = envconfig.Process("API", &config.API); err != nil {
+		return
+	}
+
+	if err = envconfig.Process("KEYCLOAK", &config.Keycloak); err != nil {
 		return
 	}
 
