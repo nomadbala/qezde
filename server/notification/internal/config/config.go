@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Resend ResendConfig
-	App    AppConfig
+	Resend  ResendConfig
+	App     AppConfig
+	Swagger SwaggerConfig
 }
 
 type ResendConfig struct {
@@ -20,6 +21,10 @@ type ResendConfig struct {
 
 type AppConfig struct {
 	Port string
+}
+
+type SwaggerConfig struct {
+	BasePath string
 }
 
 func New() (config Config, err error) {
@@ -39,6 +44,9 @@ func New() (config Config, err error) {
 
 	if err = envconfig.Process("APP", &config.App); err != nil {
 		return
+	}
+
+	if err = envconfig.Process("SWAGGER", &config.Swagger); err != nil {
 	}
 
 	return

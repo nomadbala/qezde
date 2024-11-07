@@ -3,7 +3,6 @@ package app
 import (
 	"os"
 	"os/signal"
-	"qezde/api-gateway/docs"
 	logger "qezde/api-gateway/pkg/log"
 	"qezde/api-gateway/pkg/server"
 	"syscall"
@@ -22,8 +21,6 @@ func Run() {
 			return
 		}
 	}(logger.Log)
-
-	docs.SwaggerInfo.BasePath = "/"
 
 	configs, err := config.New()
 	if err != nil {

@@ -19,7 +19,7 @@ func Run() {
 		return
 	}
 
-	docs.SwaggerInfo.BasePath = "/"
+	docs.SwaggerInfo.BasePath = configs.Swagger.BasePath
 
 	services, err := service.New(
 		service.WithResendService(configs.Resend),
@@ -41,6 +41,8 @@ func Run() {
 	servers := server.NewServer(configs, handlers.Router)
 
 	servers.Start()
+
+	log.Printf("server started on port: %s", configs.App.Port)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
