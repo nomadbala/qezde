@@ -18,10 +18,10 @@ func (h *Handler) Routes(r *mux.Router) {
 func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	content := map[string]string{"message": "Healthy"}
+	content := map[string]string{"status": "UP"}
 
 	if err := json.NewEncoder(w).Encode(content); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		http.Error(w, "failed to encode healthcheck response", http.StatusInternalServerError)
 		return
 	}
 

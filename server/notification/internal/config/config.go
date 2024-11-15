@@ -5,6 +5,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 	"os"
 	"path/filepath"
+	"qezde/notification/pkg/errors"
 )
 
 type Config struct {
@@ -27,27 +28,30 @@ type SwaggerConfig struct {
 	BasePath string
 }
 
-func New() (config Config, err error) {
+func New() (Config, errors.Error) {
+	config := Config{}
+
 	root, err := os.Getwd()
 	if err != nil {
-		return
+		return config, errors.New("CONFIG_ERROR", "failed to get working directory")
 	}
 
 	err = godotenv.Load(filepath.Join(root, ".env"))
 	if err != nil {
-		return
+		return config, errors.New("CONFIG_ERROR", "failed to load .env file")
 	}
 
 	if err = envconfig.Process("RESEND", &config.Resend); err != nil {
-		return
+		return config, errors.New("CONFIG_ERROR", "failed to load .env resend variables")
 	}
 
 	if err = envconfig.Process("APP", &config.App); err != nil {
-		return
+		return config, errors.New("CONFIG_ERROR", "failed to load .env app variables")
 	}
 
 	if err = envconfig.Process("SWAGGER", &config.Swagger); err != nil {
+		return config, errors.New("CONFIG_ERROR", "failed to load .env swagger variables")
 	}
 
-	return
+	return config, errors.Nil
 }

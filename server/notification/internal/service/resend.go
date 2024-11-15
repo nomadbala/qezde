@@ -10,39 +10,26 @@ import (
 	"qezde/notification/pkg/errors"
 )
 
-const (
-	BaseEmailTemplate    = "base_email.html"
-	WelcomeEmailTemplate = "welcome_email.html"
-)
-
-var (
-	ErrLoadingTemplates = errors.New("RESEND_EMAIL_SERVICE_ERROR", fmt.Sprintf("failed on loading templates from %s", "pkg/resend/templates"))
-	ErrLoadingTemplate  = errors.New("RESEND_EMAIL_SERVICE_ERROR", fmt.Sprintf("failed on loading %s email template", WelcomeEmailTemplate))
-	ErrParsingTemplate  = errors.New("RESEND_EMAIL_SERVICE_ERROR", fmt.Sprintf("failed on parsing %s email template", WelcomeEmailTemplate))
-	ErrFillingTemplate  = errors.New("RESEND_EMAIL_SERVICE_ERROR", fmt.Sprintf("failed on filling %s email template", WelcomeEmailTemplate))
-	ErrSendingEmail     = errors.New("RESEND_EMAIL_SERVICE_ERROR", "failed on sending email")
-)
-
 func (s *Service) LoadMailTemplate(filename string) (string, errors.Error) {
 	path := filepath.Join("pkg/resend/templates", filename)
 	data, err := os.ReadFile(path)
 
 	if err != nil {
-		return "", ErrLoadingTemplates
+		return "", errors.New("RESEND_EMAIL_SERVICE_ERROR", fmt.Sprintf("failed on loading templates from %s", "pkg/resend/templates"))
 	}
 
 	return string(data), errors.Nil
 }
 
 func (s *Service) SendWelcomeEmail(receiver, code string) errors.Error {
-	templateData, err := s.LoadMailTemplate(WelcomeEmailTemplate)
+	templateData, err := s.LoadMailTemplate("welcome_email.html")
 	if err != errors.Nil {
-		return ErrLoadingTemplate
+		return errors.New("RESEND_EMAIL_SERVICE_ERROR", fmt.Sprintf("failed on loading %s email template", "welcome_email.html"))
 	}
 
 	parsedTemplate, parsErr := template.New("email").Parse(templateData)
 	if parsErr != nil {
-		return ErrParsingTemplate
+		return errors.New("RESEND_EMAIL_SERVICE_ERROR", fmt.Sprintf("failed on parsing %s email template", "welcome_email.html"))
 	}
 
 	var body bytes.Buffer
@@ -51,7 +38,7 @@ func (s *Service) SendWelcomeEmail(receiver, code string) errors.Error {
 	}{Code: code}
 
 	if err := parsedTemplate.Execute(&body, data); err != nil {
-		return ErrFillingTemplate
+		return errors.New("RESEND_EMAIL_SERVICE_ERROR", fmt.Sprintf("failed on filling %s email template", "welcome_email.html"))
 	}
 
 	//attachment := &resend.Attachment{
@@ -68,7 +55,7 @@ func (s *Service) SendWelcomeEmail(receiver, code string) errors.Error {
 	}
 
 	if _, err := s.Resend.Client.Emails.Send(params); err != nil {
-		return ErrSendingEmail
+		return errors.New("RESEND_EMAIL_SERVICE_ERROR", "failed on sending email")
 	}
 
 	return errors.Nil

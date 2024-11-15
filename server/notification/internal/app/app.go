@@ -8,14 +8,15 @@ import (
 	"qezde/notification/internal/config"
 	"qezde/notification/internal/handler"
 	"qezde/notification/internal/service"
+	"qezde/notification/pkg/errors"
 	"qezde/notification/pkg/server"
 	"syscall"
 )
 
 func Run() {
 	configs, err := config.New()
-	if err != nil {
-		log.Fatal(err)
+	if err != errors.Nil {
+		log.Fatal(err.Error())
 		return
 	}
 
@@ -24,8 +25,8 @@ func Run() {
 	services, err := service.New(
 		service.WithResendService(configs.Resend),
 	)
-	if err != nil {
-		log.Fatal(err)
+	if err != errors.Nil {
+		log.Fatal(err.Error())
 		return
 	}
 
@@ -33,8 +34,8 @@ func Run() {
 		handler.WithHTTPHandler(),
 		handler.WithResendService(services),
 	)
-	if err != nil {
-		log.Fatal(err)
+	if err != errors.Nil {
+		log.Fatal(err.Error())
 		return
 	}
 
