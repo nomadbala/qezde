@@ -19,7 +19,7 @@ type Repository struct {
 	User user.Repository
 }
 
-func New(d Dependencies, configs ...Configuration) (r *Repository, err error) {
+func New(configs ...Configuration) (r *Repository, err error) {
 	r = &Repository{}
 
 	for _, cfg := range configs {

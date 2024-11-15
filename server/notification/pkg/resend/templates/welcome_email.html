@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Qezde</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            /*background-color: #1E1E1E;*/
+            background-color: #f0f0f0;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .logo {
+            width: 64px;
+            height: 64px;
+            mix-blend-mode: multiply;
+        }
+        .content {
+            padding: 40px;
+        }
+        h1 {
+            color: #1E1E1E;
+            font-size: 28px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        h2 {
+            color: #1E1E1E;
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        p {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        .verification-code {
+            background-color: #f0f0f0;
+            color: #1E1E1E;
+            font-size: 32px;
+            font-weight: 600;
+            text-align: center;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 10px;
+            letter-spacing: 5px;
+        }
+        .footer {
+            background-color: #f0f0f0;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            color: #1E1E1E;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            .content {
+                padding: 30px;
+            }
+        }
+        .hashtag {
+            /*color: white;*/
+            color: #1E1E1E;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <img class="logo" src="https://github.com/qezde/qezde/blob/qez-17/static/qezde_logo.jpg?raw=true" alt="">
+    </div>
+    <div class="content">
+        <h1 class="fade-in">Welcome to Qezde</h1>
+        <h2 class="fade-in">Sälem!</h2>
+        <p class="fade-in">Welcome to Qezde. We're excited to have you in our community.</p>
+        <p class="fade-in">To complete your registration, please verify your email by entering the following 6-digit code:</p>
+        <div class="verification-code fade-in">{{.Code}}</div>
+        <p class="fade-in">If you have any questions or need assistance, feel free to reach out to us!</p>
+        <p class="fade-in">
+            Regards,<br>
+            Qezde Team<br>
+            <span><b>#supportyourowns</b></span>
+        </p>
+    </div>
+    <div class="footer">
+        &copy; 2024 Qezde. All rights reserved.
+    </div>
+</div>
+</body>
+</html>

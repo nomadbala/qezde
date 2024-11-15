@@ -1,12 +1,13 @@
 package user
 
 import (
+	"context"
 	"github.com/google/uuid"
 )
 
 type Service interface {
-	GetAllUsers() (dest []DTO, err error)
-	GetUserById(id uuid.UUID) (dest DTO, err error)
-	CreateUser(request CreateUserRequest) (dest DTO, err error)
-	UpdateUser(request CreateUserRequest) (dest DTO, err error)
+	GetAllUsers(ctx context.Context) (dest []DTO, err error)
+	GetUserById(ctx context.Context, id string) (dest DTO, err error)
+	CreateUser(ctx context.Context, request CreateUserRequest) (dest DTO, err error)
+	UpdateUser(ctx context.Context, id uuid.UUID, request UpdateUserRequest) (dest DTO, err error)
 }

@@ -1,0 +1,92 @@
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  postgres_dev_volume:
+  redis_dev_volume:
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_dev
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    networks:
+      - backend
+    restart: unless-stopped
+    volumes:
+      - postgres_dev_volume:/var/lib/postgresql/data
+    healthcheck:
+      test: [ 'CMD', 'pg_isready', '-U', "${POSTGRES_USER}", '-d', '${POSTGRES_DB}' ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  supertokens:
+    image: registry.supertokens.io/supertokens/supertokens-postgresql:9.3.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${PORT_SUPERTOKENS}:${PORT_SUPERTOKENS}"
+    environment:
+      POSTGRESQL_CONNECTION_URI: "${SUPERTOKENS_POSTGRESQL_CONNECTION_URI}"
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: >
+        bash -c 'exec 3<>/dev/tcp/127.0.0.1/3567 && echo -e "GET /hello HTTP/1.1\r\nhost: 127.0.0.1:3567\r\nConnection: close\r\n\r\n" >&3 && cat <&3 | grep "Hello"'
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    image: api-gateway
+    container_name: api-gateway
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT_API_GATEWAY}:${PORT_API_GATEWAY}"
+    networks:
+      - backend
+    env_file:
+      - api-gateway/.env
+    restart: unless-stopped
+    depends_on:
+      notification:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:${PORT_API_GATEWAY}/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notification:
+    image: notification-service
+    container_name: notification-service
+    build:
+      context: ./notification
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT_NOTIFICATION_SERVICE}:${PORT_NOTIFICATION_SERVICE}"
+    networks:
+      - backend
+    env_file:
+      - ../../notification/.env
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:${PORT_NOTIFICATION_SERVICE}/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:latest
+    container_name: redis_dev
