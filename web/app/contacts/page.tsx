@@ -13,7 +13,7 @@ export default function Contacts() {
       <div className="absolute bottom-0 left-0 w-24 h-48 sm:w-48 bg-yellow-300 rounded-full opacity-50 animate-pulse"></div>
       <div className="absolute top-24 right-10 w-16 h-32 sm:w-32 bg-green-300 rounded-full opacity-50 animate-pulse"></div>
 
-      <article className="w-full sm:w-1/2 py-12 flex flex-col items-center gap-4">
+      <article className="w-full sm:w-1/2 py-12 flex flex-col items-center gap-8">
         <Autocomplete
           isRequired
           label="Вариант обращения"
