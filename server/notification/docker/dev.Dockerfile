@@ -10,8 +10,8 @@ COPY . .
 
 RUN go build -o notification-service .
 
-FROM alpine:3.20.3 AS dev
-COPY --from=builder /build/.env /app/.env
-COPY --from=builder /build/notification-service /app/notification-service
+FROM alpine:3.20.3 AS hoster
+COPY --from=builder /build/.env ./.env
+COPY --from=builder /build/notification-service ./notification-service
 
 ENTRYPOINT ["./notification-service"]

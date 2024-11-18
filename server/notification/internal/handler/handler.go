@@ -23,7 +23,7 @@ func New(configs ...Configuration) (h *Handler, err errors.Error) {
 	for _, cfg := range configs {
 		if err = cfg(h); err != errors.Nil {
 			fmt.Println(cfg(h))
-			return h, errors.New("HANDLER_ERROR", fmt.Sprintf("%s", cfg(h)))
+			return h, errors.New("HANDLER_ERROR", fmt.Sprintf("%s", cfg(h)), errors.TagInternalServerError)
 		}
 	}
 
@@ -43,7 +43,7 @@ func WithHTTPHandler() Configuration {
 		h.Routes(api)
 
 		if h.Router == nil {
-			return errors.New("HANDLER_ERROR", "failed while initializing mux router")
+			return errors.New("HANDLER_ERROR", "failed while initializing mux router", errors.TagInternalServerError)
 		}
 
 		return errors.Nil
@@ -55,7 +55,7 @@ func WithResendService(resend *service.Service) Configuration {
 		h.Resend = resend
 
 		if h.Resend == nil {
-			return errors.New("HANDLER_ERROR", "failed to initialize resend service in handler")
+			return errors.New("HANDLER_ERROR", "failed to initialize resend service in handler", errors.TagInternalServerError)
 		}
 
 		return
