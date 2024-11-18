@@ -13,6 +13,7 @@
     "@nextui-org/accordion": "^2.0.40",
     "@nextui-org/navbar": "^2.0.37",
     "@nextui-org/react": "^2.4.8",
+    "@nextui-org/tooltip": "^2.0.41",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.17",
     "next": "15.0.3",

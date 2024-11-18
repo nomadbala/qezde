@@ -1,36 +1,60 @@
 "use client";
 
+import { Logo } from "@/components/ui/icons/Logo";
 import { cn } from "@/lib/utils";
-import { Readex_Pro } from "next/font/google";
-import Image from "next/image";
+import { PT_Sans } from "next/font/google";
+import { Image } from "@nextui-org/image";
+import NextImage from "next/image";
+import { Tooltip, Link } from "@nextui-org/react";
 
-const readexPro = Readex_Pro({
+const merriweather = PT_Sans({
   subsets: ["latin"],
-  weight: ["200", "300", "400", "500", "600", "700"],
+  weight: ["400", "700"],
 });
 
 export default function AboutPage() {
   return (
     <section
       className={cn(
-        "flex min-h-screen flex-col items-center py-8",
-        readexPro.className,
+        "relative flex min-h-screen flex-col items-center gap-16 overflow-x-hidden overflow-y-hidden py-8",
       )}
     >
-      <div className="absolute right-0 top-0 -z-10 h-40 w-32 animate-pulse rounded-full bg-blue-300 opacity-50 sm:bottom-0 sm:h-60 sm:w-60"></div>
-      <div className="absolute bottom-0 left-0 -z-10 h-40 w-32 animate-pulse rounded-full bg-blue-300 opacity-50 sm:bottom-0 sm:h-60 sm:w-60"></div>
+      <header className="relative w-8/12 rounded-lg">
+        <Image
+          src="/la-riviere.jpg"
+          alt="header image"
+          width={0}
+          height={0}
+          className="w-full"
+        />
+        <Tooltip
+          showArrow={true}
+          content="Нажимая на такие подсказки, вы сможете узнать больше об этом месте"
+          color="foreground"
+          className="opacity-85"
+        >
+          <Link
+            href="/"
+            className="absolute bottom-0 right-0 z-10 mb-1 mr-1 h-10 w-fit text-4xl text-mutedAccent"
+          >
+            ?
+          </Link>
+        </Tooltip>
+      </header>
 
-      <article className="flex w-11/12 justify-between">
-        <section className="flex w-1/2 flex-col justify-around px-8 py-8">
-          <h2 className="text-4xl font-bold">Чё за Qezde?</h2>
-          <h3 className="text-2xl">
-            Qezde — это приложение, где ты найдешь лучшие места для отдыха,
-            работы и тусовок в Астане. Мы про удобство, стиль и немного
-            дерзости.
+      <article className="flex w-11/12 items-start justify-between">
+        <section className="flex w-1/2 flex-col justify-between px-8 py-8">
+          <h2 className="flex items-center gap-2">
+            <Logo size={152} />{" "}
+          </h2>
+          <h3 className={cn(merriweather.className, "ml-8 text-2xl")}>
+            - это приложение, где ты найдешь лучшие места для отдыха, работы и
+            тусовок в Астане. Мы про удобство и стиль.
           </h3>
         </section>
         <figure className="flex w-1/2 justify-center">
           <Image
+            as={NextImage}
             src={"/kama-tulkibayeva-BpugFbwxOfw-unsplash.jpg"}
             alt="about"
             width={324}

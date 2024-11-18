@@ -38,13 +38,13 @@ func (h *Handler) SendWelcomeMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := request.Validate(); err != errors.Nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if err := h.Resend.SendWelcomeEmail(request.Email, request.Code); err != errors.Nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := h.Resend.SendWelcomeEmail(request); err != errors.Nil {
+		if err.Tag == errors.TagBadRequest {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+		if err.Tag == errors.TagInternalServerError {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 

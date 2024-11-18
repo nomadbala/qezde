@@ -4,7 +4,7 @@ import { InstagramIcon, LinkedinIcon, TelegramIcon } from "../ui";
 
 export const Footer = () => {
   return (
-    <footer className="bg-mutedAccent flex w-full items-center px-8 py-6">
+    <footer className="flex w-full items-center bg-mutedAccent px-8 py-6">
       <section className="flex items-center gap-8">
         <article className="flex h-full flex-col gap-2">
           <Link href="/">
